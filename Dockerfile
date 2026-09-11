@@ -3,8 +3,9 @@ FROM python:3.12-slim
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
-# libgomp is needed by LightGBM's wheel
-RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+# libgomp is needed by LightGBM's wheel. Use the HTTPS mirror: some networks block plain-HTTP apt.
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+ && apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt pyproject.toml ./
 # CPU-only torch keeps the image ~1 GB smaller than the default CUDA wheel.
