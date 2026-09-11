@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Test backend (synthetic data, no download)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies (CPU torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt -e .
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Smoke-test API against committed artifacts
+        run: |
+          python - <<'EOF'
+          from fastapi.testclient import TestClient
+          from aeropredict.api.main import app
+          with TestClient(app) as c:
+              h = c.get("/health").json()
+              assert "FD001" in h["datasets"], h
+              d = c.get("/datasets").json()
+              print({x["dataset"]: {m: r["test"]["rmse"] for m, r in x["models"].items()} for x in d})
+          EOF
+
+  frontend-build:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Type-check and build
+        working-directory: frontend
+        run: npm run build
+
+  docker-compose-validate:
+    name: Validate docker-compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose file
+        run: docker compose config -q

@@ -1,0 +1,110 @@
+{
+  "dataset": "FD002",
+  "rul_cap": 125,
+  "window": 30,
+  "n_regimes": 6,
+  "sensors_kept": [
+    "s2",
+    "s3",
+    "s4",
+    "s6",
+    "s7",
+    "s8",
+    "s9",
+    "s11",
+    "s12",
+    "s13",
+    "s14",
+    "s15",
+    "s17",
+    "s20",
+    "s21"
+  ],
+  "sensors_dropped": [
+    "s1",
+    "s5",
+    "s10",
+    "s16",
+    "s18",
+    "s19"
+  ],
+  "n_train_units": 260,
+  "n_test_units": 259,
+  "models": {
+    "linear": {
+      "test": {
+        "rmse": 18.352,
+        "mae": 15.251,
+        "nasa_score": 1500.1,
+        "late_fraction": 0.471,
+        "urgency_accuracy": 0.792,
+        "n": 259
+      },
+      "test_uncapped_truth": {
+        "rmse": 30.538,
+        "mae": 22.745,
+        "nasa_score": 12537.1,
+        "late_fraction": 0.471,
+        "urgency_accuracy": 0.792,
+        "n": 259
+      }
+    },
+    "lgbm": {
+      "test": {
+        "rmse": 12.741,
+        "mae": 9.142,
+        "nasa_score": 715.1,
+        "late_fraction": 0.417,
+        "urgency_accuracy": 0.938,
+        "n": 259
+      },
+      "test_uncapped_truth": {
+        "rmse": 25.427,
+        "mae": 16.636,
+        "nasa_score": 6959.6,
+        "late_fraction": 0.417,
+        "urgency_accuracy": 0.938,
+        "n": 259
+      },
+      "top_features": {
+        "cycle": 1959,
+        "s13_std": 621,
+        "s9_mean": 614,
+        "s14_mean": 606,
+        "s8_std": 514,
+        "s4_mean": 504,
+        "s11_slope": 494,
+        "s2_mean": 489,
+        "s14_slope": 480,
+        "s15_slope": 449,
+        "s17_mean": 435,
+        "s4_slope": 435,
+        "s12_mean": 410,
+        "s14_std": 407,
+        "s9_std": 404
+      }
+    },
+    "lstm": {
+      "test": {
+        "rmse": 13.913,
+        "mae": 10.641,
+        "nasa_score": 1014.9,
+        "late_fraction": 0.386,
+        "urgency_accuracy": 0.942,
+        "n": 259
+      },
+      "test_uncapped_truth": {
+        "rmse": 27.114,
+        "mae": 18.135,
+        "nasa_score": 8196.2,
+        "late_fraction": 0.386,
+        "urgency_accuracy": 0.942,
+        "n": 259
+      },
+      "epochs_trained": 12,
+      "best_val_rmse": 15.802,
+      "device": "cpu"
+    }
+  },
+  "train_seconds": 60.2
+}

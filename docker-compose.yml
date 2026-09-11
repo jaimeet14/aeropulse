@@ -1,0 +1,27 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8010:8010"
+    environment:
+      CORS_ORIGINS: http://localhost:5173
+      AEROPREDICT_DATA_DIR: /app/data/raw
+      AEROPREDICT_AUTO_DOWNLOAD: "1"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8010
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
