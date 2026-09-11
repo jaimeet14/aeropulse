@@ -20,6 +20,48 @@ Each row is one flight cycle: `unit, cycle, setting_1..3, s1..s21`. Training
 trajectories run to failure; test trajectories are cut off at a random point and
 `RUL_FD00x.txt` gives the remaining cycles at that point.
 
+### What the columns physically are
+
+From Table 1 of Saxena et al. (PHM08). Station numbers follow gas-turbine
+convention: 2 = fan inlet, 24 = LPC outlet, 30 = HPC outlet, 50 = LPT outlet.
+The mapping lives in `aeropredict/config.py` (`SENSOR_INFO`) and is served by
+`GET /sensors`, so the dashboard can label every trace and feature.
+
+| Column | Symbol | Measurement | Unit |
+| --- | --- | --- | --- |
+| `s1` | T2 | Total temperature at fan inlet | °R |
+| `s2` | T24 | Total temperature at LPC outlet | °R |
+| `s3` | T30 | Total temperature at HPC outlet | °R |
+| `s4` | T50 | Total temperature at LPT outlet | °R |
+| `s5` | P2 | Pressure at fan inlet | psia |
+| `s6` | P15 | Total pressure in bypass duct | psia |
+| `s7` | P30 | Total pressure at HPC outlet | psia |
+| `s8` | Nf | Physical fan speed | rpm |
+| `s9` | Nc | Physical core speed | rpm |
+| `s10` | epr | Engine pressure ratio (P50/P2) | – |
+| `s11` | Ps30 | Static pressure at HPC outlet | psia |
+| `s12` | phi | Fuel flow / Ps30 | pps/psi |
+| `s13` | NRf | Corrected fan speed | rpm |
+| `s14` | NRc | Corrected core speed | rpm |
+| `s15` | BPR | Bypass ratio | – |
+| `s16` | farB | Burner fuel–air ratio | – |
+| `s17` | htBleed | Bleed enthalpy | – |
+| `s18` | Nf_dmd | Demanded fan speed | rpm |
+| `s19` | PCNfR_dmd | Demanded corrected fan speed | rpm |
+| `s20` | W31 | HPT coolant bleed | lbm/s |
+| `s21` | W32 | LPT coolant bleed | lbm/s |
+
+| Setting | Symbol | Meaning | Unit |
+| --- | --- | --- | --- |
+| `setting_1` | Alt | Altitude | ft |
+| `setting_2` | Mach | Mach number | – |
+| `setting_3` | TRA | Throttle resolver angle | ° |
+
+The degradation-sensitive channels — the ones LightGBM ranks highest — are the
+core-speed sensors (`s9` Nc, `s14` NRc), the HPC-outlet pressures (`s7` P30,
+`s11` Ps30), and the LPT-outlet temperature (`s4` T50): exactly where you would
+expect an HPC fault to show up.
+
 ## 2. Piecewise-linear RUL target (cap = 125)
 
 The naive label is `RUL = cycles_to_failure`. But early in life nothing is degrading:

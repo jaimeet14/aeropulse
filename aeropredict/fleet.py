@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from .config import WINDOW
+from .config import SENSOR_INFO, WINDOW
 from .data import Subset
 from .metrics import urgency
 from .models import Bundle
@@ -124,6 +124,7 @@ class FleetSimulator:
             for e in self.engines.values():
                 e.cursor = min(e.n_cycles, WINDOW)
                 e.history.clear()
+                e.shop_visits = 0
             self._predict_all()
 
     # ------------------------------------------------------------ prediction
@@ -184,5 +185,6 @@ class FleetSimulator:
             "model": self.model,
             "points": list(e.history),
             "sensors": list(pre.sensors),
+            "sensor_info": {k: SENSOR_INFO[k] for k in pre.sensors},
             "sensor_trace": trace,
         }

@@ -67,6 +67,9 @@ class DatasetInfo(BaseModel):
     rul_cap: int
     window: int
     models: dict[str, dict]
+    sensor_info: dict[str, dict[str, str]] = Field(
+        default_factory=dict, description="symbol / description / unit per sensor column"
+    )
 
 
 class EngineStatus(BaseModel):
@@ -95,4 +98,5 @@ class EngineHistory(BaseModel):
     model: ModelName
     points: list[dict]  # {cycle, rul_pred, rul_true, urgency}
     sensors: list[str]
+    sensor_info: dict[str, dict[str, str]]
     sensor_trace: list[dict]  # {cycle, <sensor>: normalised value, ...}

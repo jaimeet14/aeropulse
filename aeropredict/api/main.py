@@ -19,7 +19,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import __version__
-from ..config import ARTIFACT_DIR, DATA_DIR, RAW_COLUMNS, RUL_CAP
+from ..config import ARTIFACT_DIR, DATA_DIR, RAW_COLUMNS, RUL_CAP, SENSOR_INFO, SETTING_INFO
 from ..data import load_subset
 from ..download import dataset_present, download_cmapss
 from ..fleet import FleetSimulator
@@ -111,6 +111,12 @@ def health() -> dict:
     return {"status": "ok", "version": __version__, "datasets": sorted(state.bundles)}
 
 
+@app.get("/sensors")
+def sensors() -> dict:
+    """What each C-MAPSS column physically measures (Saxena et al., PHM08)."""
+    return {"sensors": SENSOR_INFO, "settings": SETTING_INFO}
+
+
 @app.get("/datasets", response_model=list[DatasetInfo])
 def datasets() -> list[DatasetInfo]:
     out = []
@@ -127,6 +133,7 @@ def datasets() -> list[DatasetInfo]:
                 rul_cap=m.get("rul_cap", RUL_CAP),
                 window=b.preprocessor.window,
                 models=m.get("models", {}),
+                sensor_info={k: SENSOR_INFO[k] for k in b.preprocessor.sensors + b.preprocessor.dropped_sensors},
             )
         )
     return out

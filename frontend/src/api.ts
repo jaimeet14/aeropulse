@@ -22,6 +22,12 @@ export interface ModelResult {
   device?: string;
 }
 
+export interface SensorInfo {
+  symbol: string;
+  description: string;
+  unit: string;
+}
+
 export interface DatasetInfo {
   dataset: string;
   n_regimes: number;
@@ -32,6 +38,7 @@ export interface DatasetInfo {
   rul_cap: number;
   window: number;
   models: Record<string, ModelResult>;
+  sensor_info: Record<string, SensorInfo>;
 }
 
 export interface EngineStatus {
@@ -67,6 +74,7 @@ export interface EngineHistory {
   model: ModelName;
   points: HistoryPoint[];
   sensors: string[];
+  sensor_info: Record<string, SensorInfo>;
   sensor_trace: Record<string, number>[];
 }
 
@@ -99,6 +107,27 @@ export const api = {
   engine: (dataset: string, unit: number) =>
     request<EngineHistory>(`/fleet/${unit}?dataset=${dataset}`),
 };
+
+/** "s14" -> "s14 · NRc"; unknown columns pass through unchanged. */
+export function sensorLabel(col: string, info: Record<string, SensorInfo>): string {
+  const i = info[col];
+  return i ? `${col} · ${i.symbol}` : col;
+}
+
+/** Full hover text: "s14 · NRc — Corrected core speed (rpm)". */
+export function sensorTitle(col: string, info: Record<string, SensorInfo>): string {
+  const i = info[col];
+  return i ? `${col} · ${i.symbol} — ${i.description} (${i.unit})` : col;
+}
+
+/** Engineered feature "s14_mean" -> "NRc mean"; "cycle" / "regime" pass through. */
+export function featureLabel(feature: string, info: Record<string, SensorInfo>): string {
+  const m = feature.match(/^(s\d+)(?:_(mean|std|slope))?$/);
+  if (!m) return feature;
+  const [, col, stat] = m;
+  const sym = info[col]?.symbol ?? col;
+  return stat ? `${sym} ${stat}` : sym;
+}
 
 export const MODEL_LABELS: Record<ModelName, string> = {
   linear: "Ridge (linear)",

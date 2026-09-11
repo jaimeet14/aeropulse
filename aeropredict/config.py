@@ -21,6 +21,40 @@ SETTING_COLS = ["setting_1", "setting_2", "setting_3"]
 SENSOR_COLS = [f"s{i}" for i in range(1, 22)]
 RAW_COLUMNS = ["unit", "cycle", *SETTING_COLS, *SENSOR_COLS]
 
+# What the 21 sensors physically are, from Saxena, Goebel, Simon & Eklund,
+# "Damage Propagation Modeling for Aircraft Engine Run-to-Failure Simulation"
+# (PHM08), Table 1. Station numbers follow gas-turbine convention: 2 = fan inlet,
+# 24 = LPC outlet, 30 = HPC outlet, 50 = LPT outlet. °R = degrees Rankine.
+SENSOR_INFO: dict[str, dict[str, str]] = {
+    "s1": {"symbol": "T2", "description": "Total temperature at fan inlet", "unit": "°R"},
+    "s2": {"symbol": "T24", "description": "Total temperature at LPC outlet", "unit": "°R"},
+    "s3": {"symbol": "T30", "description": "Total temperature at HPC outlet", "unit": "°R"},
+    "s4": {"symbol": "T50", "description": "Total temperature at LPT outlet", "unit": "°R"},
+    "s5": {"symbol": "P2", "description": "Pressure at fan inlet", "unit": "psia"},
+    "s6": {"symbol": "P15", "description": "Total pressure in bypass duct", "unit": "psia"},
+    "s7": {"symbol": "P30", "description": "Total pressure at HPC outlet", "unit": "psia"},
+    "s8": {"symbol": "Nf", "description": "Physical fan speed", "unit": "rpm"},
+    "s9": {"symbol": "Nc", "description": "Physical core speed", "unit": "rpm"},
+    "s10": {"symbol": "epr", "description": "Engine pressure ratio (P50/P2)", "unit": "–"},
+    "s11": {"symbol": "Ps30", "description": "Static pressure at HPC outlet", "unit": "psia"},
+    "s12": {"symbol": "phi", "description": "Fuel flow / Ps30", "unit": "pps/psi"},
+    "s13": {"symbol": "NRf", "description": "Corrected fan speed", "unit": "rpm"},
+    "s14": {"symbol": "NRc", "description": "Corrected core speed", "unit": "rpm"},
+    "s15": {"symbol": "BPR", "description": "Bypass ratio", "unit": "–"},
+    "s16": {"symbol": "farB", "description": "Burner fuel–air ratio", "unit": "–"},
+    "s17": {"symbol": "htBleed", "description": "Bleed enthalpy", "unit": "–"},
+    "s18": {"symbol": "Nf_dmd", "description": "Demanded fan speed", "unit": "rpm"},
+    "s19": {"symbol": "PCNfR_dmd", "description": "Demanded corrected fan speed", "unit": "rpm"},
+    "s20": {"symbol": "W31", "description": "HPT coolant bleed", "unit": "lbm/s"},
+    "s21": {"symbol": "W32", "description": "LPT coolant bleed", "unit": "lbm/s"},
+}
+
+SETTING_INFO: dict[str, dict[str, str]] = {
+    "setting_1": {"symbol": "Alt", "description": "Altitude", "unit": "ft"},
+    "setting_2": {"symbol": "Mach", "description": "Mach number", "unit": "–"},
+    "setting_3": {"symbol": "TRA", "description": "Throttle resolver angle", "unit": "°"},
+}
+
 # Piecewise-linear RUL target: an engine's true RUL early in life is unobservable from
 # the sensors (nothing is degrading yet), so the standard trick in the C-MAPSS
 # literature is to cap the label at a constant. 125 is the usual value.

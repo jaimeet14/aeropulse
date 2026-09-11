@@ -175,3 +175,15 @@ def test_engine_returns_to_service_after_end_of_data(client):
         f = client.post("/fleet/tick?dataset=FD001&steps=50").json()
     assert any(e["shop_visits"] >= 1 for e in f["engines"])
     assert all(e["cycle"] <= e["cycles_available"] for e in f["engines"])
+
+
+def test_sensor_names_are_exposed(client):
+    body = client.get("/sensors").json()
+    assert body["sensors"]["s14"]["symbol"] == "NRc"
+    assert body["settings"]["setting_1"]["description"] == "Altitude"
+    d = client.get("/datasets").json()[0]
+    assert set(d["sensor_info"]) == set(d["sensors_kept"]) | set(d["sensors_dropped"])
+    f = client.get("/fleet?dataset=FD001").json()
+    h = client.get(f"/fleet/{f['engines'][0]['unit']}?dataset=FD001").json()
+    assert set(h["sensor_info"]) == set(h["sensors"])
+    assert "description" in h["sensor_info"][h["sensors"][0]]

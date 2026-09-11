@@ -302,3 +302,27 @@ td.early {
 .chip.static {
   cursor: default;
 }
+
+/* ---- Sensor glossary ---- */
+.glossary {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.glossary td {
+  padding: 4px 8px;
+  border-bottom: none;
+}
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.glossary-table td.dropped {
+  color: #b91c1c;
+}
+.glossary-table td.kept {
+  color: #15803d;
+}
