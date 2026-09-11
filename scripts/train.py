@@ -1,4 +1,4 @@
-"""Train and evaluate AeroPredict models on one or more C-MAPSS sub-datasets.
+"""Train and evaluate AeroPulse models on one or more C-MAPSS sub-datasets.
 
     python scripts/train.py --dataset FD001
     python scripts/train.py --dataset all --epochs 40

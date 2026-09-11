@@ -1,8 +1,8 @@
-# AeroPredict
+# AeroPulse
 
 **Remaining-useful-life (RUL) prediction for turbofan engines** on NASA's C-MAPSS benchmark — a regime-aware feature pipeline, three models (linear → gradient boosting → LSTM) scored with the field's asymmetric cost function, served as a FastAPI service with a fleet-monitoring dashboard.
 
-[![CI](https://github.com/jaimeet14/aeropredict/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimeet14/aeropredict/actions/workflows/ci.yml)
+[![CI](https://github.com/jaimeet14/aeropulse/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimeet14/aeropulse/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![PyTorch](https://img.shields.io/badge/pytorch-2.x-ee4c2c)
 ![React](https://img.shields.io/badge/react-18-61dafb)
@@ -157,7 +157,7 @@ The suite builds a synthetic dataset with the same shape as C-MAPSS (two regimes
 ## Project structure
 
 ```
-aeropredict/
+aeropulse/                       (repo folder; Python package stays `aeropredict`)
 ├── aeropredict/
 │   ├── config.py            paths, constants (RUL cap, window, urgency thresholds)
 │   ├── data.py              parsing + RUL labelling

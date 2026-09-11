@@ -26,7 +26,7 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <div>
-          <h1>AeroPredict</h1>
+          <h1>AeroPulse</h1>
           <span className="tagline">
             Turbofan remaining-useful-life prediction · NASA C-MAPSS
           </span>

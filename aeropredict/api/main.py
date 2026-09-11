@@ -1,4 +1,4 @@
-"""AeroPredict RUL service.
+"""AeroPulse RUL service.
 
 Loads every trained bundle found in ``ARTIFACT_DIR`` at startup and exposes:
 
@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AeroPredict",
+    title="AeroPulse",
     version=__version__,
     description="Remaining-useful-life prediction for turbofan engines (NASA C-MAPSS).",
     lifespan=lifespan,
