@@ -1,0 +1,9 @@
+[project]
+name = "deciderpro"
+version = "0.1.0"
+description = "Self-learning sports value-bet simulator: Elo + online calibration, fractional Kelly, walk-forward backtest."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+deciderpro = "deciderpro.cli:main"
