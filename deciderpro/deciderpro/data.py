@@ -1,17 +1,68 @@
-"""Match records and CSV loading."""
+"""Event / odds records, JSON-lines storage and CSV importers.
+
+Event JSON (one per line in a .jsonl file):
+{
+  "sport": "basketball", "date": "2026-01-14", "home": "BOS", "away": "NYK",
+  "context":  {"rest_home": 1, "rest_away": 2, "neutral": false, "venue": "TD Garden",
+               "surface": "hard", "best_of": 3, "format": "t20", "toss": "home"},
+  "injuries": [{"player": "J. Tatum", "team": "BOS", "status": "questionable"}],
+  "lineups":  {"home": ["..."], "away": ["..."]},           # optional, when announced
+  "odds":     [{"market": "spread", "selection": "home", "line": -4.5, "price": 1.91,
+                "closing": 1.87}],
+  "result":   {"home": 112, "away": 104, "sets": [[6, 4], [3, 6], [7, 6]],
+               "player_stats": {"J. Brown": {"points": 27, "rebounds": 6}}}
+}
+"""
 import csv
-from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence
+import json
+from dataclasses import asdict, dataclass, field
+from typing import Dict, List, Optional
 
 
 @dataclass
-class Match:
-    date: str                      # ISO date, sorted lexicographically
-    home: str                      # home team / player A
-    away: str                      # away team / player B
-    result: int                    # index into odds: 3-way 0=home 1=draw 2=away; 2-way 0=home 1=away
-    odds: Sequence[float]          # decimal odds available at bet time, aligned to outcomes
-    closing_odds: Optional[Sequence[float]] = None  # for closing-line-value tracking
+class Odds:
+    market: str
+    selection: str
+    price: float
+    line: Optional[float] = None
+    closing: Optional[float] = None
+    book: str = ""
+
+
+@dataclass
+class Event:
+    sport: str
+    date: str
+    home: str
+    away: str
+    context: Dict = field(default_factory=dict)
+    injuries: List[Dict] = field(default_factory=list)
+    lineups: Optional[Dict[str, List[str]]] = None
+    odds: List[Odds] = field(default_factory=list)
+    result: Optional[Dict] = None
+    id: str = ""
+
+    @classmethod
+    def from_dict(cls, d: Dict) -> "Event":
+        d = dict(d)
+        d["odds"] = [o if isinstance(o, Odds) else Odds(**o) for o in d.get("odds", [])]
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+def load_jsonl(path: str) -> List[Event]:
+    with open(path, encoding="utf-8") as fh:
+        evs = [Event.from_dict(json.loads(line)) for line in fh if line.strip()]
+    evs.sort(key=lambda e: e.date)
+    return evs
+
+
+def save_jsonl(events: List[Event], path: str) -> None:
+    with open(path, "w", encoding="utf-8") as fh:
+        for e in events:
+            fh.write(json.dumps(e.to_dict()) + "\n")
 
 
 def _f(row, *keys) -> Optional[float]:
@@ -25,38 +76,43 @@ def _f(row, *keys) -> Optional[float]:
     return None
 
 
-def load_football_data_csv(path: str) -> List[Match]:
-    """football-data.co.uk format: Date,HomeTeam,AwayTeam,FTR,B365H/D/A (+ B365CH/CD/CA closing)."""
-    out: List[Match] = []
+def load_football_data_csv(path: str) -> List[Event]:
+    """football-data.co.uk CSV -> events with 1X2, over/under 2.5 and Asian handicap odds.
+
+    Uses Bet365 prices where present, else market averages; closing prices (B365C*/AvgC*) feed CLV.
+    """
+    out: List[Event] = []
     with open(path, newline="", encoding="utf-8-sig") as fh:
         for row in csv.DictReader(fh):
-            o = [_f(row, "B365H", "AvgH"), _f(row, "B365D", "AvgD"), _f(row, "B365A", "AvgA")]
-            c = [_f(row, "B365CH", "AvgCH"), _f(row, "B365CD", "AvgCD"), _f(row, "B365CA", "AvgCA")]
-            ftr = (row.get("FTR") or "").strip().upper()
-            if None in o or ftr not in ("H", "D", "A"):
+            try:
+                hg, ag = int(row["FTHG"]), int(row["FTAG"])
+            except (KeyError, ValueError):
                 continue
             d = row["Date"].strip()
-            if "/" in d:  # dd/mm/yy[yy] -> ISO
+            if "/" in d:
                 dd, mm, yy = d.split("/")
                 yy = ("20" + yy) if len(yy) == 2 else yy
                 d = f"{yy}-{mm.zfill(2)}-{dd.zfill(2)}"
-            out.append(Match(d, row["HomeTeam"], row["AwayTeam"], "HDA".index(ftr), o,
-                             c if None not in c else None))
-    out.sort(key=lambda m: m.date)
-    return out
+            odds: List[Odds] = []
 
+            def add(market, sel, line, open_keys, close_keys):
+                p = _f(row, *open_keys)
+                if p and p > 1.0:
+                    odds.append(Odds(market, sel, p, line, _f(row, *close_keys)))
 
-def load_generic_csv(path: str) -> List[Match]:
-    """Generic 2-way format: date,home,away,winner(home|away),odds_home,odds_away[,close_home,close_away]."""
-    out: List[Match] = []
-    with open(path, newline="", encoding="utf-8-sig") as fh:
-        for row in csv.DictReader(fh):
-            w = row["winner"].strip().lower()
-            if w not in ("home", "away"):
-                continue
-            o = [float(row["odds_home"]), float(row["odds_away"])]
-            ch, ca = _f(row, "close_home"), _f(row, "close_away")
-            out.append(Match(row["date"], row["home"], row["away"], 0 if w == "home" else 1, o,
-                             [ch, ca] if ch and ca else None))
-    out.sort(key=lambda m: m.date)
+            add("1x2", "home", None, ("B365H", "AvgH"), ("B365CH", "AvgCH"))
+            add("1x2", "draw", None, ("B365D", "AvgD"), ("B365CD", "AvgCD"))
+            add("1x2", "away", None, ("B365A", "AvgA"), ("B365CA", "AvgCA"))
+            add("total", "over", 2.5, ("B365>2.5", "Avg>2.5"), ("B365C>2.5", "AvgC>2.5"))
+            add("total", "under", 2.5, ("B365<2.5", "Avg<2.5"), ("B365C<2.5", "AvgC<2.5"))
+            ah = _f(row, "AHh")
+            if ah is not None:
+                ahc = _f(row, "AHCh")
+                # closing AH prices only comparable when the closing line is unchanged
+                same = ahc is None or ahc == ah
+                add("spread", "home", ah, ("B365AHH", "AvgAHH"), ("B365CAHH", "AvgCAHH") if same else ())
+                add("spread", "away", -ah, ("B365AHA", "AvgAHA"), ("B365CAHA", "AvgCAHA") if same else ())
+            out.append(Event("football", d, row["HomeTeam"], row["AwayTeam"], odds=odds,
+                             result={"home": hg, "away": ag}))
+    out.sort(key=lambda e: e.date)
     return out

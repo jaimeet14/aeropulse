@@ -1,7 +1,7 @@
 [project]
 name = "deciderpro"
-version = "0.1.0"
-description = "Self-learning sports value-bet simulator: Elo + online calibration, fractional Kelly, walk-forward backtest."
+version = "0.2.0"
+description = "Self-learning multi-market sports betting simulator: injuries, lineups, player props, trust gate, fractional Kelly."
 requires-python = ">=3.10"
 dependencies = []
 

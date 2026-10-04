@@ -1,3 +1,3 @@
-"""DeciderPro: self-learning value-bet simulator (simulation / paper trading only)."""
+"""DeciderPro: self-learning multi-market sports betting simulator (paper betting only)."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
