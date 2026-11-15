@@ -1,0 +1,9 @@
+[project]
+name = "deciderpro"
+version = "0.2.0"
+description = "Self-learning multi-market sports betting simulator: injuries, lineups, player props, trust gate, fractional Kelly."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+deciderpro = "deciderpro.cli:main"
